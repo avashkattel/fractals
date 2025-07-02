@@ -26,6 +26,7 @@ function initializeFractalExplorer(fractalConfig) {
     const colorDensitySlider = document.getElementById('color-density');
     const colorDensityValue = document.getElementById('color-density-value');
     const paletteSelect = document.getElementById('palette-select');
+    const cycleBtn = document.getElementById('cycle-btn');
     const colorPickers = [
         document.getElementById('color1'), document.getElementById('color2'),
         document.getElementById('color3'), document.getElementById('color4'),
@@ -52,6 +53,8 @@ function initializeFractalExplorer(fractalConfig) {
     let lastMousePos = { x: 0, y: 0 };
     let lastPinchDistance = null;
     let autoZoomIntervalId = null;
+    let colorCycleId = null;
+    let time = 0;
 
     const AUTO_ZOOM_FPS = 10;
     const AUTO_ZOOM_FACTOR = 1.05;
@@ -130,6 +133,7 @@ function initializeFractalExplorer(fractalConfig) {
         gl.uniform1i(gl.getUniformLocation(shaderProgram, 'u_max_iterations'), maxIterations);
         gl.uniform1f(gl.getUniformLocation(shaderProgram, 'u_color_power'), colorPower);
         gl.uniform1f(gl.getUniformLocation(shaderProgram, 'u_color_density'), colorDensity);
+        gl.uniform1f(gl.getUniformLocation(shaderProgram, 'u_time'), time); // Pass time for cycling
         colors.forEach((hex, i) => {
             const rgb = hexToRgb(hex);
             gl.uniform3f(gl.getUniformLocation(shaderProgram, `u_color${i+1}`), rgb[0], rgb[1], rgb[2]);
@@ -220,19 +224,32 @@ function initializeFractalExplorer(fractalConfig) {
 
             if (lastPinchDistance !== null) {
                 const zoomFactor = currentDist / lastPinchDistance;
-                
                 const rect = canvas.getBoundingClientRect();
                 const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
                 const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
                 const midComplex = screenToComplex(midX, midY);
-                
                 zoom *= zoomFactor;
                 center[0] = midComplex.x - (midComplex.x - center[0]) / zoomFactor;
                 center[1] = midComplex.y - (midComplex.y - center[1]) / zoomFactor;
-                
                 requestRender();
             }
             lastPinchDistance = currentDist;
+        }
+
+        function toggleColorCycle() {
+            if (colorCycleId) {
+                cancelAnimationFrame(colorCycleId);
+                colorCycleId = null;
+                cycleBtn.textContent = "Start Color Cycling";
+            } else {
+                cycleBtn.textContent = "Stop Color Cycling";
+                const cycle = () => {
+                    time += 0.005;
+                    requestRender();
+                    colorCycleId = requestAnimationFrame(cycle);
+                };
+                cycle();
+            }
         }
 
         function populatePalettes() {
@@ -253,11 +270,8 @@ function initializeFractalExplorer(fractalConfig) {
             if (paletteIndex === "custom") return;
             const palette = PALETTES[paletteIndex];
             if (!palette) return;
-
             colors = [...palette.colors];
-            colorPickers.forEach((picker, i) => {
-                picker.value = colors[i];
-            });
+            colorPickers.forEach((picker, i) => picker.value = colors[i]);
             requestRender();
         }
 
@@ -269,27 +283,18 @@ function initializeFractalExplorer(fractalConfig) {
         canvas.addEventListener('touchstart', e => {
             e.preventDefault();
             stopAutoZoom();
-            if (e.touches.length === 1) {
-                handlePanStart(e.touches[0].clientX, e.touches[0].clientY);
-            } else if (e.touches.length === 2) {
-                isDragging = false;
-                handlePinch(e);
-            }
+            if (e.touches.length === 1) handlePanStart(e.touches[0].clientX, e.touches[0].clientY);
+            else if (e.touches.length === 2) { isDragging = false; handlePinch(e); }
         }, { passive: false });
 
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
-            if (e.touches.length === 1) {
-                handlePanMove(e.touches[0].clientX, e.touches[0].clientY);
-            } else if (e.touches.length === 2) {
-                handlePinch(e);
-            }
+            if (e.touches.length === 1) handlePanMove(e.touches[0].clientX, e.touches[0].clientY);
+            else if (e.touches.length === 2) handlePinch(e);
         }, { passive: false });
         
         canvas.addEventListener('touchend', e => {
-            if (e.touches.length < 2) {
-                lastPinchDistance = null;
-            }
+            if (e.touches.length < 2) lastPinchDistance = null;
             const touch = e.changedTouches[0];
             handlePanEnd(touch.clientX, touch.clientY);
         });
@@ -323,6 +328,7 @@ function initializeFractalExplorer(fractalConfig) {
         colorDensitySlider.addEventListener('change', requestRender);
 
         paletteSelect.addEventListener('change', e => applyPalette(e.target.value));
+        cycleBtn.addEventListener('click', toggleColorCycle);
 
         colorPickers.forEach((picker, i) => {
             picker.addEventListener('input', e => {
@@ -334,6 +340,7 @@ function initializeFractalExplorer(fractalConfig) {
 
         resetBtn.addEventListener('click', () => {
             stopAutoZoom();
+            if (colorCycleId) toggleColorCycle();
             center = [...DEFAULTS.center];
             zoom = DEFAULTS.zoom;
             maxIterations = DEFAULTS.maxIterations;

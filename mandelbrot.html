@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mandelbrot Explorer</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -14,9 +14,11 @@
     <a id="about-link" href="https://en.wikipedia.org/wiki/Mandelbrot_set" target="_blank" rel="noopener noreferrer">About</a>
     
     <div id="controls-container" class="hidden">
-        <div class="controls-header">
-            <h1>Mandelbrot Explorer</h1>
+        
+        <div class="action-buttons">
             <button id="reset-btn">Reset</button>
+            <button id="download-btn">Download HQ</button>
+            <button id="cycle-btn">Cycle Color</button>
         </div>
 
         <div class="control-group">
@@ -51,30 +53,27 @@
         <div class="stats-grid">
             <div>
                 <span class="stat-label">Center X:</span>
-                <span id="center-x-val" class="stat-value">0.0</span>
+                <span id="center-x-val" class="stat-value">-1.6725e-1</span>
             </div>
              <div>
                 <span class="stat-label">Center Y:</span>
-                <span id="center-y-val" class="stat-value">0.0</span>
+                <span id="center-y-val" class="stat-value">1.0412e+0</span>
             </div>
             <div class="span-2">
                 <span class="stat-label">Zoom Level:</span>
-                <span id="zoom-val" class="stat-value">1.0</span>
+                <span id="zoom-val" class="stat-value">2.2959e+3</span>
             </div>
         </div>
     </div>
 
-<!-- This generic vertex shader simply creates a canvas-filling rectangle. -->
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec2 a_position;
 void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
 }</script>
 
-<!-- The reusable fractal explorer library -->
-<script src="scripts/FractalExplorer.js"></script>
+<script src="/scripts/FractalExplorer.js"></script>
 
-<!-- The specific code for the Mandelbrot set -->
 <script>
     const mandelbrotDefaults = {
         center: [-0.5, 0.0],
@@ -94,6 +93,7 @@ void main() {
             uniform int u_max_iterations;
             uniform float u_color_power;
             uniform float u_color_density;
+            uniform float u_time;
             uniform vec3 u_color1;
             uniform vec3 u_color2;
             uniform vec3 u_color3;
@@ -126,9 +126,9 @@ void main() {
                 if (i >= u_max_iterations - 1) {
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
                 } else {
-                    float smoothed = float(i + 1) - log2(log2(dot(z, z))) / log2(2.0);
-                    // The fract() function creates repeating color cycles, controlled by density.
-                    float color_value = smoothed / u_color_density;
+                    float n = float(i) + 1.0 - log2(log(length(z)));
+                    float smoothed_log = log(1.0 + n);
+                    float color_value = smoothed_log / (u_color_density * 0.1) + u_time;
                     gl_FragColor = vec4(colorize(fract(color_value)), 1.0);
                 }
             }
