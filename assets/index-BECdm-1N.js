@@ -168,12 +168,13 @@ uniform float u_zoom;\r
 uniform int u_maxIterations;\r
 uniform vec2 u_juliaC; // Special uniform for Julia\r
 \r
-vec3 colorPalette(float t) {\r
-    vec3 a = vec3(0.5, 0.5, 0.5);\r
-    vec3 b = vec3(0.5, 0.5, 0.5);\r
-    vec3 c = vec3(1.0, 1.0, 1.0);\r
-    vec3 d = vec3(0.00, 0.33, 0.67);\r
-    return a + b * cos(6.28318 * (c * t + d));\r
+uniform sampler2D u_palette;\r
+uniform float u_colorCycle;\r
+\r
+vec3 getPaletteColor(float t) {\r
+    float cycle = u_colorCycle * 0.2;\r
+    vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);\r
+    return texture2D(u_palette, uv).rgb;\r
 }\r
 \r
 void main() {\r
@@ -196,7 +197,7 @@ void main() {\r
     float sn = iter - log2(log2(dot(z, z))) + 4.0;\r
     float t = sn / 20.0;\r
     \r
-    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : colorPalette(t);\r
+    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : getPaletteColor(t);\r
     gl_FragColor = vec4(color, 1.0);\r
 }\r
 `,MR=`varying vec2 vUv;\r
@@ -205,12 +206,13 @@ uniform vec2 u_zoomCenter;\r
 uniform float u_zoom;\r
 uniform int u_maxIterations;\r
 \r
-vec3 colorPalette(float t) {\r
-    vec3 a = vec3(0.5, 0.5, 0.5);\r
-    vec3 b = vec3(0.5, 0.5, 0.5);\r
-    vec3 c = vec3(1.0, 1.0, 1.0);\r
-    vec3 d = vec3(0.3, 0.2, 0.2); // Reddish palette\r
-    return a + b * cos(6.28318 * (c * t + d));\r
+uniform sampler2D u_palette;\r
+uniform float u_colorCycle;\r
+\r
+vec3 getPaletteColor(float t) {\r
+    float cycle = u_colorCycle * 0.2;\r
+    vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);\r
+    return texture2D(u_palette, uv).rgb;\r
 }\r
 \r
 void main() {\r
@@ -239,7 +241,7 @@ void main() {\r
     float sn = iter - log2(log2(dot(z, z))) + 4.0;\r
     float t = sn / 50.0;\r
     \r
-    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : colorPalette(t);\r
+    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : getPaletteColor(t);\r
     gl_FragColor = vec4(color, 1.0);\r
 }\r
 `,ER=`varying vec2 vUv;\r
