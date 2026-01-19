@@ -10,9 +10,70 @@ Error generating stack: `+d.message+`
 
 Please change the parent <Route path="${D}"> to <Route path="${D==="/"?"*":`${D}/*`}">.`)}let b=bf(),S;if(e){let D=typeof e=="string"?yd(e):e;Mi(v==="/"||D.pathname?.startsWith(v),`When overriding the location using \`<Routes location>\` or \`useRoutes(routes, location)\`, the location pathname must begin with the portion of the URL pathname that was matched by all parent routes. The current pathname base is "${v}" but pathname "${D.pathname}" was given in the \`location\` prop.`),S=D}else S=b;let T=S.pathname||"/",C=T;if(v!=="/"){let D=v.replace(/^\//,"").split("/");C="/"+T.replace(/^\//,"").split("/").slice(D.length).join("/")}let A=aT(r,{pathname:C});no(x||A!=null,`No routes matched location "${S.pathname}${S.search}${S.hash}" `),no(A==null||A[A.length-1].route.element!==void 0||A[A.length-1].route.Component!==void 0||A[A.length-1].route.lazy!==void 0,`Matched leaf route at location "${S.pathname}${S.search}${S.hash}" does not have an element or Component. This means it will render an <Outlet /> with a null value by default resulting in an "empty" page.`);let E=C3(A&&A.map(D=>Object.assign({},D,{params:Object.assign({},p,D.params),pathname:Bl([v,l.encodeLocation?l.encodeLocation(D.pathname.replace(/\?/g,"%3F").replace(/#/g,"%23")).pathname:D.pathname]),pathnameBase:D.pathnameBase==="/"?v:Bl([v,l.encodeLocation?l.encodeLocation(D.pathnameBase.replace(/\?/g,"%3F").replace(/#/g,"%23")).pathname:D.pathnameBase])})),f,t,n,a);return e&&E?ie.createElement(Qm.Provider,{value:{location:{pathname:"/",search:"",hash:"",state:null,key:"default",...S},navigationType:"POP"}},E):E}function E3(){let r=U3(),e=c3(r)?`${r.status} ${r.statusText}`:r instanceof Error?r.message:JSON.stringify(r),t=r instanceof Error?r.stack:null,n="rgba(200,200,200, 0.5)",a={padding:"0.5rem",backgroundColor:n},l={padding:"2px 4px",backgroundColor:n},f=null;return console.error("Error handled by React Router default ErrorBoundary:",r),f=ie.createElement(ie.Fragment,null,ie.createElement("p",null,"💿 Hey developer 👋"),ie.createElement("p",null,"You can provide a way better UX than this when your app throws errors by providing your own ",ie.createElement("code",{style:l},"ErrorBoundary")," or"," ",ie.createElement("code",{style:l},"errorElement")," prop on your route.")),ie.createElement(ie.Fragment,null,ie.createElement("h2",null,"Unexpected Application Error!"),ie.createElement("h3",{style:{fontStyle:"italic"}},e),t?ie.createElement("pre",{style:a},t):null,f)}var T3=ie.createElement(E3,null),xT=class extends ie.Component{constructor(r){super(r),this.state={location:r.location,revalidation:r.revalidation,error:r.error}}static getDerivedStateFromError(r){return{error:r}}static getDerivedStateFromProps(r,e){return e.location!==r.location||e.revalidation!=="idle"&&r.revalidation==="idle"?{error:r.error,location:r.location,revalidation:r.revalidation}:{error:r.error!==void 0?r.error:e.error,location:e.location,revalidation:r.revalidation||e.revalidation}}componentDidCatch(r,e){this.props.onError?this.props.onError(r,e):console.error("React Router caught the following error during render",r)}render(){let r=this.state.error;if(this.context&&typeof r=="object"&&r&&"digest"in r&&typeof r.digest=="string"){const t=x3(r.digest);t&&(r=t)}let e=r!==void 0?ie.createElement(Xl.Provider,{value:this.props.routeContext},ie.createElement(nS.Provider,{value:r,children:this.props.component})):this.props.children;return this.context?ie.createElement(A3,{error:r},e):e}};xT.contextType=d3;var S_=new WeakMap;function A3({children:r,error:e}){let{basename:t}=ie.useContext(Ts);if(typeof e=="object"&&e&&"digest"in e&&typeof e.digest=="string"){let n=y3(e.digest);if(n){let a=S_.get(e);if(a)throw a;let l=hT(n.location,t);if(fT&&!S_.get(e))if(l.isExternal||n.reloadDocument)window.location.href=l.absoluteURL||l.to;else{const f=Promise.resolve().then(()=>window.__reactRouterDataRouter.navigate(l.to,{replace:n.replace}));throw S_.set(e,f),f}return ie.createElement("meta",{httpEquiv:"refresh",content:`0;url=${l.absoluteURL||l.to}`})}}return r}function w3({routeContext:r,match:e,children:t}){let n=ie.useContext(xd);return n&&n.static&&n.staticContext&&(e.route.errorElement||e.route.ErrorBoundary)&&(n.staticContext._deepestRenderedBoundaryId=e.route.id),ie.createElement(Xl.Provider,{value:r},t)}function C3(r,e=[],t=null,n=null,a=null){if(r==null){if(!t)return null;if(t.errors)r=t.matches;else if(e.length===0&&!t.initialized&&t.matches.length>0)r=t.matches;else return null}let l=r,f=t?.errors;if(f!=null){let v=l.findIndex(x=>x.route.id&&f?.[x.route.id]!==void 0);Mi(v>=0,`Could not find a matching route for errors on route IDs: ${Object.keys(f).join(",")}`),l=l.slice(0,Math.min(l.length,v+1))}let h=!1,p=-1;if(t)for(let v=0;v<l.length;v++){let x=l[v];if((x.route.HydrateFallback||x.route.hydrateFallbackElement)&&(p=v),x.route.id){let{loaderData:b,errors:S}=t,T=x.route.loader&&!b.hasOwnProperty(x.route.id)&&(!S||S[x.route.id]===void 0);if(x.route.lazy||T){h=!0,p>=0?l=l.slice(0,p+1):l=[l[0]];break}}}let g=t&&n?(v,x)=>{n(v,{location:t.location,params:t.matches?.[0]?.params??{},unstable_pattern:f3(t.matches),errorInfo:x})}:void 0;return l.reduceRight((v,x,b)=>{let S,T=!1,C=null,A=null;t&&(S=f&&x.route.id?f[x.route.id]:void 0,C=x.route.errorElement||T3,h&&(p<0&&b===0?(_T("route-fallback",!1,"No `HydrateFallback` element provided to render during initial hydration"),T=!0,A=null):p===b&&(T=!0,A=x.route.hydrateFallbackElement||null)));let E=e.concat(l.slice(0,b+1)),D=()=>{let N;return S?N=C:T?N=A:x.route.Component?N=ie.createElement(x.route.Component,null):x.route.element?N=x.route.element:N=v,ie.createElement(w3,{match:x,routeContext:{outlet:v,matches:E,isDataRoute:t!=null},children:N})};return t&&(x.route.ErrorBoundary||x.route.errorElement||b===0)?ie.createElement(xT,{location:t.location,revalidation:t.revalidation,component:C,error:S,children:D(),routeContext:{outlet:null,matches:E,isDataRoute:!0},onError:g}):D()},null)}function iS(r){return`${r} must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.`}function R3(r){let e=ie.useContext(xd);return Mi(e,iS(r)),e}function D3(r){let e=ie.useContext(jy);return Mi(e,iS(r)),e}function N3(r){let e=ie.useContext(Xl);return Mi(e,iS(r)),e}function rS(r){let e=N3(r),t=e.matches[e.matches.length-1];return Mi(t.route.id,`${r} can only be used on routes that contain a unique "id"`),t.route.id}function L3(){return rS("useRouteId")}function U3(){let r=ie.useContext(nS),e=D3("useRouteError"),t=rS("useRouteError");return r!==void 0?r:e.errors?.[t]}function I3(){let{router:r}=R3("useNavigate"),e=rS("useNavigate"),t=ie.useRef(!1);return vT(()=>{t.current=!0}),ie.useCallback(async(a,l={})=>{no(t.current,gT),t.current&&(typeof a=="number"?await r.navigate(a):await r.navigate(a,{fromRouteId:e,...l}))},[r,e])}var t1={};function _T(r,e,t){!e&&!t1[r]&&(t1[r]=!0,no(!1,t))}ie.memo(P3);function P3({routes:r,future:e,state:t,onError:n}){return yT(r,void 0,t,n,e)}function wb(r){Mi(!1,"A <Route> is only ever to be used as the child of <Routes> element, never rendered directly. Please wrap your <Route> in a <Routes>.")}function O3({basename:r="/",children:e=null,location:t,navigationType:n="POP",navigator:a,static:l=!1,unstable_useTransitions:f}){Mi(!Km(),"You cannot render a <Router> inside another <Router>. You should never have more than one in your app.");let h=r.replace(/^\/*/,"/"),p=ie.useMemo(()=>({basename:h,navigator:a,static:l,unstable_useTransitions:f,future:{}}),[h,a,l,f]);typeof t=="string"&&(t=yd(t));let{pathname:g="/",search:v="",hash:x="",state:b=null,key:S="default"}=t,T=ie.useMemo(()=>{let C=Hl(g,h);return C==null?null:{location:{pathname:C,search:v,hash:x,state:b,key:S},navigationType:n}},[h,g,v,x,b,S,n]);return no(T!=null,`<Router basename="${h}"> is not able to match the URL "${g}${v}${x}" because it does not start with the basename, so the <Router> won't render anything.`),T==null?null:ie.createElement(Ts.Provider,{value:p},ie.createElement(Qm.Provider,{children:e,value:T}))}function z3({children:r,location:e}){return M3(Cb(r),e)}function Cb(r,e=[]){let t=[];return ie.Children.forEach(r,(n,a)=>{if(!ie.isValidElement(n))return;let l=[...e,a];if(n.type===ie.Fragment){t.push.apply(t,Cb(n.props.children,l));return}Mi(n.type===wb,`[${typeof n.type=="string"?n.type:n.type.name}] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>`),Mi(!n.props.index||!n.props.children,"An index route cannot have child routes.");let f={id:n.props.id||l.join("-"),caseSensitive:n.props.caseSensitive,element:n.props.element,Component:n.props.Component,index:n.props.index,path:n.props.path,middleware:n.props.middleware,loader:n.props.loader,action:n.props.action,hydrateFallbackElement:n.props.hydrateFallbackElement,HydrateFallback:n.props.HydrateFallback,errorElement:n.props.errorElement,ErrorBoundary:n.props.ErrorBoundary,hasErrorBoundary:n.props.hasErrorBoundary===!0||n.props.ErrorBoundary!=null||n.props.errorElement!=null,shouldRevalidate:n.props.shouldRevalidate,handle:n.props.handle,lazy:n.props.lazy};n.props.children&&(f.children=Cb(n.props.children,l)),t.push(f)}),t}var Gv="get",Wv="application/x-www-form-urlencoded";function Zy(r){return typeof HTMLElement<"u"&&r instanceof HTMLElement}function F3(r){return Zy(r)&&r.tagName.toLowerCase()==="button"}function B3(r){return Zy(r)&&r.tagName.toLowerCase()==="form"}function k3(r){return Zy(r)&&r.tagName.toLowerCase()==="input"}function V3(r){return!!(r.metaKey||r.altKey||r.ctrlKey||r.shiftKey)}function H3(r,e){return r.button===0&&(!e||e==="_self")&&!V3(r)}var Y0=null;function G3(){if(Y0===null)try{new FormData(document.createElement("form"),0),Y0=!1}catch{Y0=!0}return Y0}var W3=new Set(["application/x-www-form-urlencoded","multipart/form-data","text/plain"]);function M_(r){return r!=null&&!W3.has(r)?(no(!1,`"${r}" is not a valid \`encType\` for \`<Form>\`/\`<fetcher.Form>\` and will default to "${Wv}"`),null):r}function X3(r,e){let t,n,a,l,f;if(B3(r)){let h=r.getAttribute("action");n=h?Hl(h,e):null,t=r.getAttribute("method")||Gv,a=M_(r.getAttribute("enctype"))||Wv,l=new FormData(r)}else if(F3(r)||k3(r)&&(r.type==="submit"||r.type==="image")){let h=r.form;if(h==null)throw new Error('Cannot submit a <button> or <input type="submit"> without a <form>');let p=r.getAttribute("formaction")||h.getAttribute("action");if(n=p?Hl(p,e):null,t=r.getAttribute("formmethod")||h.getAttribute("method")||Gv,a=M_(r.getAttribute("formenctype"))||M_(h.getAttribute("enctype"))||Wv,l=new FormData(h,r),!G3()){let{name:g,type:v,value:x}=r;if(v==="image"){let b=g?`${g}.`:"";l.append(`${b}x`,"0"),l.append(`${b}y`,"0")}else g&&l.append(g,x)}}else{if(Zy(r))throw new Error('Cannot submit element that is not <form>, <button>, or <input type="submit|image">');t=Gv,n=null,a=Wv,f=r}return l&&a==="text/plain"&&(f=l,l=void 0),{action:n,method:t.toLowerCase(),encType:a,formData:l,body:f}}Object.getOwnPropertyNames(Object.prototype).sort().join("\0");function aS(r,e){if(r===!1||r===null||typeof r>"u")throw new Error(e)}function q3(r,e,t,n){let a=typeof r=="string"?new URL(r,typeof window>"u"?"server://singlefetch/":window.location.origin):r;return t?a.pathname.endsWith("/")?a.pathname=`${a.pathname}_.${n}`:a.pathname=`${a.pathname}.${n}`:a.pathname==="/"?a.pathname=`_root.${n}`:e&&Hl(a.pathname,e)==="/"?a.pathname=`${e.replace(/\/$/,"")}/_root.${n}`:a.pathname=`${a.pathname.replace(/\/$/,"")}.${n}`,a}async function Y3(r,e){if(r.id in e)return e[r.id];try{let t=await import(r.module);return e[r.id]=t,t}catch(t){return console.error(`Error loading route module \`${r.module}\`, reloading page...`),console.error(t),window.__reactRouterContext&&window.__reactRouterContext.isSpaMode,window.location.reload(),new Promise(()=>{})}}function j3(r){return r==null?!1:r.href==null?r.rel==="preload"&&typeof r.imageSrcSet=="string"&&typeof r.imageSizes=="string":typeof r.rel=="string"&&typeof r.href=="string"}async function Z3(r,e,t){let n=await Promise.all(r.map(async a=>{let l=e.routes[a.route.id];if(l){let f=await Y3(l,t);return f.links?f.links():[]}return[]}));return $3(n.flat(1).filter(j3).filter(a=>a.rel==="stylesheet"||a.rel==="preload").map(a=>a.rel==="stylesheet"?{...a,rel:"prefetch",as:"style"}:{...a,rel:"prefetch"}))}function n1(r,e,t,n,a,l){let f=(p,g)=>t[g]?p.route.id!==t[g].route.id:!0,h=(p,g)=>t[g].pathname!==p.pathname||t[g].route.path?.endsWith("*")&&t[g].params["*"]!==p.params["*"];return l==="assets"?e.filter((p,g)=>f(p,g)||h(p,g)):l==="data"?e.filter((p,g)=>{let v=n.routes[p.route.id];if(!v||!v.hasLoader)return!1;if(f(p,g)||h(p,g))return!0;if(p.route.shouldRevalidate){let x=p.route.shouldRevalidate({currentUrl:new URL(a.pathname+a.search+a.hash,window.origin),currentParams:t[0]?.params||{},nextUrl:new URL(r,window.origin),nextParams:p.params,defaultShouldRevalidate:!0});if(typeof x=="boolean")return x}return!0}):[]}function Q3(r,e,{includeHydrateFallback:t}={}){return K3(r.map(n=>{let a=e.routes[n.route.id];if(!a)return[];let l=[a.module];return a.clientActionModule&&(l=l.concat(a.clientActionModule)),a.clientLoaderModule&&(l=l.concat(a.clientLoaderModule)),t&&a.hydrateFallbackModule&&(l=l.concat(a.hydrateFallbackModule)),a.imports&&(l=l.concat(a.imports)),l}).flat(1))}function K3(r){return[...new Set(r)]}function J3(r){let e={},t=Object.keys(r).sort();for(let n of t)e[n]=r[n];return e}function $3(r,e){let t=new Set;return new Set(e),r.reduce((n,a)=>{let l=JSON.stringify(J3(a));return t.has(l)||(t.add(l),n.push({key:l,link:a})),n},[])}function bT(){let r=ie.useContext(xd);return aS(r,"You must render this element inside a <DataRouterContext.Provider> element"),r}function eR(){let r=ie.useContext(jy);return aS(r,"You must render this element inside a <DataRouterStateContext.Provider> element"),r}var sS=ie.createContext(void 0);sS.displayName="FrameworkContext";function ST(){let r=ie.useContext(sS);return aS(r,"You must render this element inside a <HydratedRouter> element"),r}function tR(r,e){let t=ie.useContext(sS),[n,a]=ie.useState(!1),[l,f]=ie.useState(!1),{onFocus:h,onBlur:p,onMouseEnter:g,onMouseLeave:v,onTouchStart:x}=e,b=ie.useRef(null);ie.useEffect(()=>{if(r==="render"&&f(!0),r==="viewport"){let C=E=>{E.forEach(D=>{f(D.isIntersecting)})},A=new IntersectionObserver(C,{threshold:.5});return b.current&&A.observe(b.current),()=>{A.disconnect()}}},[r]),ie.useEffect(()=>{if(n){let C=setTimeout(()=>{f(!0)},100);return()=>{clearTimeout(C)}}},[n]);let S=()=>{a(!0)},T=()=>{a(!1),f(!1)};return t?r!=="intent"?[l,b,{}]:[l,b,{onFocus:em(h,S),onBlur:em(p,T),onMouseEnter:em(g,S),onMouseLeave:em(v,T),onTouchStart:em(x,S)}]:[!1,b,{}]}function em(r,e){return t=>{r&&r(t),t.defaultPrevented||e(t)}}function nR({page:r,...e}){let{router:t}=bT(),n=ie.useMemo(()=>aT(t.routes,r,t.basename),[t.routes,r,t.basename]);return n?ie.createElement(rR,{page:r,matches:n,...e}):null}function iR(r){let{manifest:e,routeModules:t}=ST(),[n,a]=ie.useState([]);return ie.useEffect(()=>{let l=!1;return Z3(r,e,t).then(f=>{l||a(f)}),()=>{l=!0}},[r,e,t]),n}function rR({page:r,matches:e,...t}){let n=bf(),{future:a,manifest:l,routeModules:f}=ST(),{basename:h}=bT(),{loaderData:p,matches:g}=eR(),v=ie.useMemo(()=>n1(r,e,g,l,n,"data"),[r,e,g,l,n]),x=ie.useMemo(()=>n1(r,e,g,l,n,"assets"),[r,e,g,l,n]),b=ie.useMemo(()=>{if(r===n.pathname+n.search+n.hash)return[];let C=new Set,A=!1;if(e.forEach(D=>{let N=l.routes[D.route.id];!N||!N.hasLoader||(!v.some(U=>U.route.id===D.route.id)&&D.route.id in p&&f[D.route.id]?.shouldRevalidate||N.hasClientLoader?A=!0:C.add(D.route.id))}),C.size===0)return[];let E=q3(r,h,a.unstable_trailingSlashAwareDataRequests,"data");return A&&C.size>0&&E.searchParams.set("_routes",e.filter(D=>C.has(D.route.id)).map(D=>D.route.id).join(",")),[E.pathname+E.search]},[h,a.unstable_trailingSlashAwareDataRequests,p,n,l,v,e,r,f]),S=ie.useMemo(()=>Q3(x,l),[x,l]),T=iR(x);return ie.createElement(ie.Fragment,null,b.map(C=>ie.createElement("link",{key:C,rel:"prefetch",as:"fetch",href:C,...t})),S.map(C=>ie.createElement("link",{key:C,rel:"modulepreload",href:C,...t})),T.map(({key:C,link:A})=>ie.createElement("link",{key:C,nonce:t.nonce,...A})))}function aR(...r){return e=>{r.forEach(t=>{typeof t=="function"?t(e):t!=null&&(t.current=e)})}}var sR=typeof window<"u"&&typeof window.document<"u"&&typeof window.document.createElement<"u";try{sR&&(window.__reactRouterVersion="7.12.0")}catch{}function oR({basename:r,children:e,unstable_useTransitions:t,window:n}){let a=ie.useRef();a.current==null&&(a.current=kC({window:n,v5Compat:!0}));let l=a.current,[f,h]=ie.useState({action:l.action,location:l.location}),p=ie.useCallback(g=>{t===!1?h(g):ie.startTransition(()=>h(g))},[t]);return ie.useLayoutEffect(()=>l.listen(p),[l,p]),ie.createElement(O3,{basename:r,children:e,location:f.location,navigationType:f.action,navigator:l,unstable_useTransitions:t})}var MT=/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i,Qy=ie.forwardRef(function({onClick:e,discover:t="render",prefetch:n="none",relative:a,reloadDocument:l,replace:f,state:h,target:p,to:g,preventScrollReset:v,viewTransition:x,unstable_defaultShouldRevalidate:b,...S},T){let{basename:C,unstable_useTransitions:A}=ie.useContext(Ts),E=typeof g=="string"&&MT.test(g),D=hT(g,C);g=D.to;let N=_3(g,{relative:a}),[U,z,F]=tR(n,S),B=fR(g,{replace:f,state:h,target:p,preventScrollReset:v,relative:a,viewTransition:x,unstable_defaultShouldRevalidate:b,unstable_useTransitions:A});function G(O){e&&e(O),O.defaultPrevented||B(O)}let I=ie.createElement("a",{...S,...F,href:D.absoluteURL||N,onClick:D.isExternal||l?e:G,ref:aR(T,z),target:p,"data-discover":!E&&t==="render"?"true":void 0});return U&&!E?ie.createElement(ie.Fragment,null,I,ie.createElement(nR,{page:N})):I});Qy.displayName="Link";var lR=ie.forwardRef(function({"aria-current":e="page",caseSensitive:t=!1,className:n="",end:a=!1,style:l,to:f,viewTransition:h,children:p,...g},v){let x=Jm(f,{relative:g.relative}),b=bf(),S=ie.useContext(jy),{navigator:T,basename:C}=ie.useContext(Ts),A=S!=null&&gR(x)&&h===!0,E=T.encodeLocation?T.encodeLocation(x).pathname:x.pathname,D=b.pathname,N=S&&S.navigation&&S.navigation.location?S.navigation.location.pathname:null;t||(D=D.toLowerCase(),N=N?N.toLowerCase():null,E=E.toLowerCase()),N&&C&&(N=Hl(N,C)||N);const U=E!=="/"&&E.endsWith("/")?E.length-1:E.length;let z=D===E||!a&&D.startsWith(E)&&D.charAt(U)==="/",F=N!=null&&(N===E||!a&&N.startsWith(E)&&N.charAt(E.length)==="/"),B={isActive:z,isPending:F,isTransitioning:A},G=z?e:void 0,I;typeof n=="function"?I=n(B):I=[n,z?"active":null,F?"pending":null,A?"transitioning":null].filter(Boolean).join(" ");let O=typeof l=="function"?l(B):l;return ie.createElement(Qy,{...g,"aria-current":G,className:I,ref:v,style:O,to:f,viewTransition:h},typeof p=="function"?p(B):p)});lR.displayName="NavLink";var uR=ie.forwardRef(({discover:r="render",fetcherKey:e,navigate:t,reloadDocument:n,replace:a,state:l,method:f=Gv,action:h,onSubmit:p,relative:g,preventScrollReset:v,viewTransition:x,unstable_defaultShouldRevalidate:b,...S},T)=>{let{unstable_useTransitions:C}=ie.useContext(Ts),A=pR(),E=mR(h,{relative:g}),D=f.toLowerCase()==="get"?"get":"post",N=typeof h=="string"&&MT.test(h),U=z=>{if(p&&p(z),z.defaultPrevented)return;z.preventDefault();let F=z.nativeEvent.submitter,B=F?.getAttribute("formmethod")||f,G=()=>A(F||z.currentTarget,{fetcherKey:e,method:B,navigate:t,replace:a,state:l,relative:g,preventScrollReset:v,viewTransition:x,unstable_defaultShouldRevalidate:b});C&&t!==!1?ie.startTransition(()=>G()):G()};return ie.createElement("form",{ref:T,method:D,action:E,onSubmit:n?p:U,...S,"data-discover":!N&&r==="render"?"true":void 0})});uR.displayName="Form";function cR(r){return`${r} must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.`}function ET(r){let e=ie.useContext(xd);return Mi(e,cR(r)),e}function fR(r,{target:e,replace:t,state:n,preventScrollReset:a,relative:l,viewTransition:f,unstable_defaultShouldRevalidate:h,unstable_useTransitions:p}={}){let g=b3(),v=bf(),x=Jm(r,{relative:l});return ie.useCallback(b=>{if(H3(b,e)){b.preventDefault();let S=t!==void 0?t:Rm(v)===Rm(x),T=()=>g(r,{replace:S,state:n,preventScrollReset:a,relative:l,viewTransition:f,unstable_defaultShouldRevalidate:h});p?ie.startTransition(()=>T()):T()}},[v,g,x,t,n,e,r,a,l,f,h,p])}var hR=0,dR=()=>`__${String(++hR)}__`;function pR(){let{router:r}=ET("useSubmit"),{basename:e}=ie.useContext(Ts),t=L3(),n=r.fetch,a=r.navigate;return ie.useCallback(async(l,f={})=>{let{action:h,method:p,encType:g,formData:v,body:x}=X3(l,e);if(f.navigate===!1){let b=f.fetcherKey||dR();await n(b,t,f.action||h,{unstable_defaultShouldRevalidate:f.unstable_defaultShouldRevalidate,preventScrollReset:f.preventScrollReset,formData:v,body:x,formMethod:f.method||p,formEncType:f.encType||g,flushSync:f.flushSync})}else await a(f.action||h,{unstable_defaultShouldRevalidate:f.unstable_defaultShouldRevalidate,preventScrollReset:f.preventScrollReset,formData:v,body:x,formMethod:f.method||p,formEncType:f.encType||g,replace:f.replace,state:f.state,fromRouteId:t,flushSync:f.flushSync,viewTransition:f.viewTransition})},[n,a,e,t])}function mR(r,{relative:e}={}){let{basename:t}=ie.useContext(Ts),n=ie.useContext(Xl);Mi(n,"useFormAction must be used inside a RouteContext");let[a]=n.matches.slice(-1),l={...Jm(r||".",{relative:e})},f=bf();if(r==null){l.search=f.search;let h=new URLSearchParams(l.search),p=h.getAll("index");if(p.some(v=>v==="")){h.delete("index"),p.filter(x=>x).forEach(x=>h.append("index",x));let v=h.toString();l.search=v?`?${v}`:""}}return(!r||r===".")&&a.route.index&&(l.search=l.search?l.search.replace(/^\?/,"?index&"):"?index"),t!=="/"&&(l.pathname=l.pathname==="/"?t:Bl([t,l.pathname])),Rm(l)}function gR(r,{relative:e}={}){let t=ie.useContext(pT);Mi(t!=null,"`useViewTransitionState` must be used within `react-router-dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?");let{basename:n}=ET("useViewTransitionState"),a=Jm(r,{relative:e});if(!t.isTransitioning)return!1;let l=Hl(t.currentLocation.pathname,n)||t.currentLocation.pathname,f=Hl(t.nextLocation.pathname,n)||t.nextLocation.pathname;return Qv(a.pathname,f)!=null||Qv(a.pathname,l)!=null}const vR=`varying vec2 vUv;\r
 uniform vec2 u_resolution;\r
-uniform vec2 u_zoomCenter;\r
+uniform vec2 u_zoomCenterHigh;\r
+uniform vec2 u_zoomCenterLow;\r
 uniform float u_zoom;\r
 uniform int u_maxIterations;\r
+\r
+// Emulated Double Precision (DS) Math\r
+// Based on DS funcs from standard libraries (e.g. Threlte, glsl-ds)\r
+\r
+vec2 ds_set(float a) {\r
+    return vec2(a, 0.0);\r
+}\r
+\r
+vec2 ds_add(vec2 dsa, vec2 dsb) {\r
+    vec2 dsc;\r
+    float t1, t2, e;\r
+    t1 = dsa.x + dsb.x;\r
+    e = t1 - dsa.x;\r
+    t2 = ((dsb.x - e) + (dsa.x - (t1 - e))) + dsa.y + dsb.y;\r
+    dsc.x = t1 + t2;\r
+    dsc.y = t2 - (dsc.x - t1);\r
+    return dsc;\r
+}\r
+\r
+vec2 ds_sub(vec2 dsa, vec2 dsb) {\r
+    vec2 dsc;\r
+    float t1, t2, e;\r
+    t1 = dsa.x - dsb.x;\r
+    e = t1 - dsa.x;\r
+    t2 = ((-dsb.x - e) + (dsa.x - (t1 - e))) + dsa.y - dsb.y;\r
+    dsc.x = t1 + t2;\r
+    dsc.y = t2 - (dsc.x - t1);\r
+    return dsc;\r
+}\r
+\r
+vec2 ds_mul(vec2 dsa, vec2 dsb) {\r
+    vec2 dsc;\r
+    float c11, c21, c2, e, t1, t2;\r
+    float a1, a2, b1, b2, cona, conb, split = 8193.0;\r
+    \r
+    cona = dsa.x * split;\r
+    a1 = cona - (cona - dsa.x);\r
+    a2 = dsa.x - a1;\r
+    \r
+    conb = dsb.x * split;\r
+    b1 = conb - (conb - dsb.x);\r
+    b2 = dsb.x - b1;\r
+    \r
+    c11 = dsa.x * dsb.x;\r
+    c21 = a2 * b2 + (a2 * b1 + (a1 * b2 + (a1 * b1 - c11)));\r
+    \r
+    c2 = dsa.x * dsb.y + dsa.y * dsb.x;\r
+    \r
+    t1 = c11 + c2;\r
+    e = t1 - c11;\r
+    t2 = dsa.y * dsb.y + ((c2 - e) + (c11 - (t1 - e))) + c21;\r
+    \r
+    dsc.x = t1 + t2;\r
+    dsc.y = t2 - (dsc.x - t1);\r
+    return dsc;\r
+}\r
+\r
+vec2 ds_sqr(vec2 dsa) {\r
+    return ds_mul(dsa, dsa);\r
+}\r
 \r
 vec3 colorPalette(float t) {\r
     vec3 a = vec3(0.5, 0.5, 0.5);\r
@@ -23,29 +84,84 @@ vec3 colorPalette(float t) {\r
 }\r
 \r
 void main() {\r
+    float aspect = u_resolution.x / u_resolution.y;\r
     vec2 uv = vUv - 0.5;\r
-    uv.x *= u_resolution.x / u_resolution.y;\r
+    uv.x *= aspect;\r
     \r
-    // Apply zoom and center\r
-    vec2 c = u_zoomCenter + uv * (1.0 / u_zoom);\r
-    vec2 z = vec2(0.0);\r
+    // Pixel coordinate relative to center (float precision is fine for local offset)\r
+    // p = uv / zoom \r
+    // But we need p as DS because zoom is huge.\r
+    \r
+    // Create DS for UV offset\r
+    // val = uv * (1.0/zoom)\r
+    // 1.0/zoom might be very small.\r
+    \r
+    vec2 zoomVal = ds_set(1.0 / u_zoom); // This might underflow float if zoom > 1e38, but JS number is double.\r
+    // Wait, u_zoom is float uniform. 32-bit float saturates at 1e38, but precision dies at 1e7.\r
+    // We cannot pass u_zoom as float if we want > 1e7 precision context.\r
+    // BUT: The "offset" from center is small.\r
+    // The "absolute" coordinate c = center + offset must be high precision.\r
+    \r
+    // Strategy:\r
+    // C_x = center_x (DS) + (uv.x / zoom) (DS)\r
+    \r
+    vec2 uvx = ds_set(uv.x);\r
+    vec2 uvy = ds_set(uv.y);\r
+    \r
+    // We pass zoom as float, but we might need higher precision for the scale factor if zoom is REALLY huge?\r
+    // Actually, 1/zoom is just a small number. As long as it's not subnormal, it's fine.\r
+    // Float epsilon is 1e-7. If zoom is 1e14, 1/zoom is 1e-14. This fits in float (min approx 1e-38).\r
+    // So distinct floats are fine for the offset.\r
+    \r
+    vec2 scale = ds_set(1.0 / u_zoom);\r
+    \r
+    vec2 offX = ds_mul(uvx, scale);\r
+    vec2 offY = ds_mul(uvy, scale);\r
+    \r
+    vec2 cx = ds_add(vec2(u_zoomCenterHigh.x, u_zoomCenterLow.x), offX);\r
+    vec2 cy = ds_add(vec2(u_zoomCenterHigh.y, u_zoomCenterLow.y), offY);\r
+    \r
+    // Z = 0\r
+    vec2 zx = ds_set(0.0);\r
+    vec2 zy = ds_set(0.0);\r
     \r
     float iter = 0.0;\r
-    for (int i = 0; i < 1000; i++) { // Max loop constant for unroll safety, check uniform break\r
+    \r
+    for (int i = 0; i < 1000; i++) {\r
         if (i >= u_maxIterations) break;\r
         \r
-        // z = z^2 + c\r
-        // (x+yi)^2 = x^2 - y^2 + 2xyi\r
-        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;\r
+        // x2 = x*x, y2 = y*y\r
+        vec2 x2 = ds_sqr(zx);\r
+        vec2 y2 = ds_sqr(zy);\r
         \r
-        if (dot(z, z) > 4.0) {\r
+        // Escape condition: x2 + y2 > 4.0\r
+        // We can just check the high part for speed\r
+        if (x2.x + y2.x > 4.0) {\r
             iter = float(i);\r
             break;\r
         }\r
+        \r
+        // new_y = 2*x*y + cy\r
+        vec2 two = ds_set(2.0);\r
+        vec2 xy = ds_mul(zx, zy);\r
+        vec2 twoxy = ds_mul(two, xy);\r
+        zy = ds_add(twoxy, cy);\r
+        \r
+        // new_x = x2 - y2 + cx\r
+        vec2 x2my2 = ds_sub(x2, y2);\r
+        zx = ds_add(x2my2, cx);\r
     }\r
     \r
-    // Smooth coloring\r
-    float sn = iter - log2(log2(dot(z, z))) + 4.0;\r
+    // Coloring\r
+    // Need mag for smooth coloring?\r
+    // float mag = dot(z,z) -> x2 + y2\r
+    // float sqMod = x2.x + y2.x; // approx\r
+    \r
+    // Recalculate z^2 one last time for smooth coloring if escaped\r
+    // (Opt: could just save x2.x + y2.x from loop)\r
+    float sqMod = zx.x*zx.x + zy.x*zy.x;\r
+    \r
+    float sn = iter - log2(log2(sqMod)) + 4.0;\r
     float t = sn / 50.0;\r
     \r
     vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : colorPalette(t);\r
