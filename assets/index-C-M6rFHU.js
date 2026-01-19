@@ -16,11 +16,7 @@ uniform float u_zoom;\r
 uniform int u_maxIterations;\r
 \r
 // Emulated Double Precision (DS) Math\r
-// Based on DS funcs from standard libraries (e.g. Threlte, glsl-ds)\r
-\r
-vec2 ds_set(float a) {\r
-    return vec2(a, 0.0);\r
-}\r
+vec2 ds_set(float a) { return vec2(a, 0.0); }\r
 \r
 vec2 ds_add(vec2 dsa, vec2 dsb) {\r
     vec2 dsc;\r
@@ -83,90 +79,82 @@ vec3 colorPalette(float t) {\r
     return a + b * cos(6.28318 * (c * t + d));\r
 }\r
 \r
-void main() {\r
-    float aspect = u_resolution.x / u_resolution.y;\r
-    vec2 uv = vUv - 0.5;\r
-    uv.x *= aspect;\r
+// Core Solver Function\r
+vec3 solve(vec2 p) {\r
+    // p is the standard UV coordinate (-0.5 to 0.5 approx, aspect corrected)\r
+    // Convert to DS and apply Zoom/Center\r
     \r
-    // Pixel coordinate relative to center (float precision is fine for local offset)\r
-    // p = uv / zoom \r
-    // But we need p as DS because zoom is huge.\r
+    vec2 zoomVal = ds_set(1.0 / u_zoom);\r
+    vec2 uvx = ds_set(p.x);\r
+    vec2 uvy = ds_set(p.y);\r
     \r
-    // Create DS for UV offset\r
-    // val = uv * (1.0/zoom)\r
-    // 1.0/zoom might be very small.\r
-    \r
-    vec2 zoomVal = ds_set(1.0 / u_zoom); // This might underflow float if zoom > 1e38, but JS number is double.\r
-    // Wait, u_zoom is float uniform. 32-bit float saturates at 1e38, but precision dies at 1e7.\r
-    // We cannot pass u_zoom as float if we want > 1e7 precision context.\r
-    // BUT: The "offset" from center is small.\r
-    // The "absolute" coordinate c = center + offset must be high precision.\r
-    \r
-    // Strategy:\r
-    // C_x = center_x (DS) + (uv.x / zoom) (DS)\r
-    \r
-    vec2 uvx = ds_set(uv.x);\r
-    vec2 uvy = ds_set(uv.y);\r
-    \r
-    // We pass zoom as float, but we might need higher precision for the scale factor if zoom is REALLY huge?\r
-    // Actually, 1/zoom is just a small number. As long as it's not subnormal, it's fine.\r
-    // Float epsilon is 1e-7. If zoom is 1e14, 1/zoom is 1e-14. This fits in float (min approx 1e-38).\r
-    // So distinct floats are fine for the offset.\r
-    \r
-    vec2 scale = ds_set(1.0 / u_zoom);\r
-    \r
-    vec2 offX = ds_mul(uvx, scale);\r
-    vec2 offY = ds_mul(uvy, scale);\r
+    vec2 offX = ds_mul(uvx, zoomVal);\r
+    vec2 offY = ds_mul(uvy, zoomVal);\r
     \r
     vec2 cx = ds_add(vec2(u_zoomCenterHigh.x, u_zoomCenterLow.x), offX);\r
     vec2 cy = ds_add(vec2(u_zoomCenterHigh.y, u_zoomCenterLow.y), offY);\r
     \r
-    // Z = 0\r
     vec2 zx = ds_set(0.0);\r
     vec2 zy = ds_set(0.0);\r
     \r
     float iter = 0.0;\r
     \r
-    for (int i = 0; i < 1000; i++) {\r
+    for (int i = 0; i < 2000; i++) { // Increased max loop for deep zoom\r
         if (i >= u_maxIterations) break;\r
         \r
-        // x2 = x*x, y2 = y*y\r
         vec2 x2 = ds_sqr(zx);\r
         vec2 y2 = ds_sqr(zy);\r
         \r
-        // Escape condition: x2 + y2 > 4.0\r
-        // We can just check the high part for speed\r
         if (x2.x + y2.x > 4.0) {\r
             iter = float(i);\r
             break;\r
         }\r
         \r
-        // new_y = 2*x*y + cy\r
         vec2 two = ds_set(2.0);\r
         vec2 xy = ds_mul(zx, zy);\r
         vec2 twoxy = ds_mul(two, xy);\r
         zy = ds_add(twoxy, cy);\r
         \r
-        // new_x = x2 - y2 + cx\r
         vec2 x2my2 = ds_sub(x2, y2);\r
         zx = ds_add(x2my2, cx);\r
     }\r
     \r
-    // Coloring\r
-    // Need mag for smooth coloring?\r
-    // float mag = dot(z,z) -> x2 + y2\r
-    // float sqMod = x2.x + y2.x; // approx\r
+    if (iter == float(u_maxIterations)) return vec3(0.0);\r
     \r
-    // Recalculate z^2 one last time for smooth coloring if escaped\r
-    // (Opt: could just save x2.x + y2.x from loop)\r
     float sqMod = zx.x*zx.x + zy.x*zy.x;\r
-    \r
     float sn = iter - log2(log2(sqMod)) + 4.0;\r
     float t = sn / 50.0;\r
     \r
-    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : colorPalette(t);\r
+    return colorPalette(t);\r
+}\r
+\r
+void main() {\r
+    float aspect = u_resolution.x / u_resolution.y;\r
+    vec2 uv = vUv - 0.5;\r
+    uv.x *= aspect;\r
     \r
-    gl_FragColor = vec4(color, 1.0);\r
+    // SuperSampling (2x2)\r
+    // Sample 4 points around the pixel center\r
+    // Offset is 0.25 of a pixel width\r
+    \r
+    // d is size of 1/4 pixel in UV space\r
+    // PixelSize in UV = 1.0 / u_resolution.y (vertical)\r
+    // We want 1/4 of that roughly.\r
+    \r
+    float pixelScale = 1.0 / u_resolution.y; \r
+    float d = pixelScale * 0.25;\r
+    \r
+    vec3 col = vec3(0.0);\r
+    \r
+    // 4 Samples\r
+    col += solve(uv + vec2(-d, -d));\r
+    col += solve(uv + vec2(+d, -d));\r
+    col += solve(uv + vec2(-d, +d));\r
+    col += solve(uv + vec2(+d, +d));\r
+    \r
+    col *= 0.25;\r
+    \r
+    gl_FragColor = vec4(col, 1.0);\r
 }\r
 `,yR=`varying vec2 vUv;\r
 uniform vec2 u_resolution;\r
