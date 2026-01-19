@@ -221,6 +221,7 @@ uniform int u_maxIterations;\r
 \r
 uniform sampler2D u_palette;\r
 uniform float u_colorCycle;\r
+uniform float u_smoothIterations;\r
 \r
 vec3 getPaletteColor(float t) {\r
     float cycle = u_colorCycle * 0.2;\r
@@ -254,7 +255,7 @@ void main() {\r
     float sn = iter - log2(log2(dot(z, z))) + 4.0;\r
     float t = sn / 50.0;\r
     \r
-    float edge = float(u_maxIterations) - 20.0;\r
+    float edge = u_smoothIterations - 20.0;\r
     float fade = clamp((iter - edge) / 20.0, 0.0, 1.0);\r
     \r
     vec3 paletteCol = getPaletteColor(t);\r
