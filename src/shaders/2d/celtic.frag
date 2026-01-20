@@ -61,22 +61,24 @@ vec2 ds_sqr(vec2 dsa) {
     return ds_mul(dsa, dsa);
 }
 
+// Helper for Absolute value of DS number
+vec2 ds_abs(vec2 a) {
+    if (a.x < 0.0) return vec2(-a.x, -a.y);
+    return a;
+}
+
 uniform sampler2D u_palette;
 uniform float u_colorCycle;
-uniform float u_smoothIterations; // Continuous flow
+uniform float u_smoothIterations; 
 
 vec3 getPaletteColor(float t) {
-    // Offset by color cycle
-    float cycle = u_colorCycle * 0.2; // Speed
+    float cycle = u_colorCycle * 0.2; 
     vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);
     return texture2D(u_palette, uv).rgb;
 }
 
 // Core Solver Function
 vec3 solve(vec2 p) {
-    // ... [Previous DS/Loop code assumed unchanged] ...
-    
-    // START OF REPLACEMENT TARGET
     vec2 zoomVal = ds_set(1.0 / u_zoom);
     vec2 uvx = ds_set(p.x);
     vec2 uvy = ds_set(p.y);
@@ -92,7 +94,7 @@ vec3 solve(vec2 p) {
     
     float iter = float(u_maxIterations);
     
-    for (int i = 0; i < 2000; i++) { // Increased max loop
+    for (int i = 0; i < 2000; i++) {
         if (i >= u_maxIterations) break;
         
         vec2 x2 = ds_sqr(zx);
@@ -103,30 +105,32 @@ vec3 solve(vec2 p) {
             break;
         }
         
+        // Celtic: (|Re| + i Im)^2 + c
+        // = (|x| + iy)^2 + c
+        // = (|x|^2 - y^2) + i(2|x|y) + c
+        // Note: |x|^2 == x^2 so real part is same as Mandelbrot!
+        // Imaginary part uses |x|
+        
+        vec2 absZx = ds_abs(zx);
+        
         vec2 two = ds_set(2.0);
-        vec2 xy = ds_mul(zx, zy);
+        vec2 xy = ds_mul(absZx, zy); // Use ABS(zx) here
         vec2 twoxy = ds_mul(two, xy);
         zy = ds_add(twoxy, cy);
         
         vec2 x2my2 = ds_sub(x2, y2);
         zx = ds_add(x2my2, cx);
     }
-    // END OF REPLACEMENT TARGET
     
     float sqMod = zx.x*zx.x + zy.x*zy.x;
     float sn = iter - log2(log2(sqMod)) + 4.0;
     float t = sn / 50.0;
 
-    // Smooth Fade based on Continuous Float
     float edge = u_smoothIterations - 20.0;
     float fade = clamp((iter - edge) / 20.0, 0.0, 1.0);
     
     vec3 color = getPaletteColor(t);
-    
-    // Safety cut must rely on the uniform logic to avoid popping
-    // If iter is very high (near limit), we force it black.
     if (iter > float(u_maxIterations) - 0.5) return vec3(0.0);
-    
     return mix(color, vec3(0.0), fade);
 }
 
@@ -134,27 +138,13 @@ void main() {
     float aspect = u_resolution.x / u_resolution.y;
     vec2 uv = vUv - 0.5;
     uv.x *= aspect;
-    
-    // SuperSampling (2x2)
-    // Sample 4 points around the pixel center
-    // Offset is 0.25 of a pixel width
-    
-    // d is size of 1/4 pixel in UV space
-    // PixelSize in UV = 1.0 / u_resolution.y (vertical)
-    // We want 1/4 of that roughly.
-    
     float pixelScale = 1.0 / u_resolution.y; 
     float d = pixelScale * 0.25;
-    
     vec3 col = vec3(0.0);
-    
-    // 4 Samples
     col += solve(uv + vec2(-d, -d));
     col += solve(uv + vec2(+d, -d));
     col += solve(uv + vec2(-d, +d));
     col += solve(uv + vec2(+d, +d));
-    
     col *= 0.25;
-    
     gl_FragColor = vec4(col, 1.0);
 }

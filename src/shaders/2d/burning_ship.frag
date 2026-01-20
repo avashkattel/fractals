@@ -4,12 +4,14 @@ uniform vec2 u_zoomCenter;
 uniform float u_zoom;
 uniform int u_maxIterations;
 
-vec3 colorPalette(float t) {
-    vec3 a = vec3(0.5, 0.5, 0.5);
-    vec3 b = vec3(0.5, 0.5, 0.5);
-    vec3 c = vec3(1.0, 1.0, 1.0);
-    vec3 d = vec3(0.3, 0.2, 0.2); // Reddish palette
-    return a + b * cos(6.28318 * (c * t + d));
+uniform sampler2D u_palette;
+uniform float u_colorCycle;
+uniform float u_smoothIterations;
+
+vec3 getPaletteColor(float t) {
+    float cycle = u_colorCycle * 0.2;
+    vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);
+    return texture2D(u_palette, uv).rgb;
 }
 
 void main() {
@@ -19,7 +21,7 @@ void main() {
     vec2 c = u_zoomCenter + uv * (1.0 / u_zoom);
     vec2 z = vec2(0.0);
     
-    float iter = 0.0;
+    float iter = float(u_maxIterations);
     for (int i = 0; i < 1000; i++) {
         if (i >= u_maxIterations) break;
         
@@ -38,6 +40,10 @@ void main() {
     float sn = iter - log2(log2(dot(z, z))) + 4.0;
     float t = sn / 50.0;
     
-    vec3 color = iter == float(u_maxIterations) ? vec3(0.0) : colorPalette(t);
+    float edge = u_smoothIterations - 20.0;
+    float fade = clamp((iter - edge) / 20.0, 0.0, 1.0);
+    
+    vec3 paletteCol = getPaletteColor(t);
+    vec3 color = iter > float(u_maxIterations) - 0.5 ? vec3(0.0) : mix(paletteCol, vec3(0.0), fade);
     gl_FragColor = vec4(color, 1.0);
 }

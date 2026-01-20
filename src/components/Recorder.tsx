@@ -18,11 +18,28 @@ export const Recorder = () => {
 
     const startRecording = () => {
         const canvas = gl.domElement;
-        // Capture stream at 60fps (or whatever the browser supports)
-        const stream = canvas.captureStream(60);
+        // Capture stream at 30fps (Facebook Compatible & Stable)
+        const stream = canvas.captureStream(30);
 
         try {
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+            // Facebook/Social Media prefer H.264 MP4
+            const mimeTypes = [
+                'video/mp4; codecs="avc1.42E01E, mp4a.40.2"', // Explicit H.264 Baseline
+                'video/mp4', // Generic MP4
+                'video/webm; codecs=vp9', // High Quality WebM
+                'video/webm' // Generic WebM
+            ];
+
+            let selectedType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm';
+            console.log("Recording with mimeType:", selectedType);
+
+            // High Bitrate: 8 Mbps for crispy 1080p/60
+            const options = {
+                mimeType: selectedType,
+                videoBitsPerSecond: 8000000
+            };
+
+            const recorder = new MediaRecorder(stream, options);
             mediaRecorderRef.current = recorder;
             chunksRef.current = [];
 
@@ -32,9 +49,9 @@ export const Recorder = () => {
                 }
             };
 
-            recorder.onstop = saveVideo;
+            recorder.onstop = () => saveVideo(selectedType);
             recorder.start();
-            console.log("Recording started");
+            setRecording(true);
         } catch (err) {
             console.error("Failed to start recording:", err);
             setRecording(false);
@@ -48,14 +65,17 @@ export const Recorder = () => {
         }
     };
 
-    const saveVideo = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+    const saveVideo = (mimeType: string) => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `fractal-recording-${Date.now()}.webm`;
+        // Extension based on mimeType
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        a.download = `fractal-recording-${Date.now()}.${ext}`;
         a.click();
         URL.revokeObjectURL(url);
+        setRecording(false);
     };
 
     return null; // This component handles side effects only

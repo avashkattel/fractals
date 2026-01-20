@@ -19,14 +19,22 @@ vec2 c_pow3(vec2 z) {
     return vec2(x*x*x - 3.0*x*y*y, 3.0*x*x*y - y*y*y);
 }
 
+uniform sampler2D u_palette;
+uniform float u_colorCycle;
+
+vec3 getPaletteColor(float t) {
+    float cycle = u_colorCycle * 0.2;
+    vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);
+    return texture2D(u_palette, uv).rgb;
+}
+
 void main() {
     vec2 uv = vUv - 0.5;
     uv.x *= u_resolution.x / u_resolution.y;
     vec2 z = u_zoomCenter + uv * (1.0 / u_zoom);
     
     int i = 0;
-    float dist = 1.0;
-    vec3 color = vec3(0.0);
+    vec3 baseColor = vec3(0.0);
     
     // Roots of z^3 - 1
     vec2 r1 = vec2(1.0, 0.0);
@@ -34,20 +42,23 @@ void main() {
     vec2 r3 = vec2(-0.5, -sqrt(3.0)/2.0);
     
     for(int n=0; n<MAX_ITER; n++) {
-        // z = z - (z^3 - 1) / (3*z^2)
         vec2 z3 = c_pow3(z);
         vec2 num = z3 - vec2(1.0, 0.0);
         vec2 den = 3.0 * c_mult(z, z);
         z = z - c_div(num, den);
         
-        // Check convergence
-        if (distance(z, r1) < 0.001) { color = vec3(1.0, 0.0, 0.0); i=n; break; }
-        if (distance(z, r2) < 0.001) { color = vec3(0.0, 1.0, 0.0); i=n; break; }
-        if (distance(z, r3) < 0.001) { color = vec3(0.0, 0.0, 1.0); i=n; break; }
+        if (distance(z, r1) < 0.001) { 
+            baseColor = getPaletteColor(0.0 + float(n)*0.05); i=n; break; 
+        }
+        if (distance(z, r2) < 0.001) { 
+            baseColor = getPaletteColor(0.33 + float(n)*0.05); i=n; break; 
+        }
+        if (distance(z, r3) < 0.001) { 
+            baseColor = getPaletteColor(0.66 + float(n)*0.05); i=n; break; 
+        }
     }
     
-    // Shade by iteration count for smooth blending
-    color *= (1.0 - float(i)/float(MAX_ITER));
-    
+    // Soft shading
+    vec3 color = baseColor * (1.0 - float(i)/float(MAX_ITER));
     gl_FragColor = vec4(color, 1.0);
 }

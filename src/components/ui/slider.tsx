@@ -11,8 +11,8 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         return (
             <div className="flex flex-col gap-2 w-full">
                 <div className="flex justify-between items-center">
-                    {label && <label className="text-sm font-medium text-foreground">{label}</label>}
-                    {valueDisplay && <span className="text-xs text-muted-foreground">{valueDisplay}</span>}
+                    {label && <label className="text-sm font-medium text-gray-200">{label}</label>}
+                    {valueDisplay && <span className="text-xs text-gray-400 font-mono">{valueDisplay}</span>}
                 </div>
                 <input
                     type="range"
