@@ -853,6 +853,24 @@ float DE(vec3 pos) {\r
     return 0.5 * log(r) * r / dr;\r
 }\r
 \r
+uniform sampler2D u_palette;\r
+uniform float u_colorCycle;\r
+\r
+vec3 getPaletteColor(float t) {\r
+    float cycle = u_colorCycle * 0.2;\r
+    vec2 uv = vec2(mod(t + cycle, 1.0), 0.5);\r
+    return texture2D(u_palette, uv).rgb;\r
+}\r
+\r
+vec3 calcNormal(vec3 p) {\r
+    float eps = 0.001;\r
+    return normalize(vec3(\r
+        DE(p + vec3(eps, 0, 0)) - DE(p - vec3(eps, 0, 0)),\r
+        DE(p + vec3(0, eps, 0)) - DE(p - vec3(0, eps, 0)),\r
+        DE(p + vec3(0, 0, eps)) - DE(p - vec3(0, 0, eps))\r
+    ));\r
+}\r
+\r
 // Raymarching Loop\r
 void main() {\r
     vec2 uv = vUv - 0.5;\r
@@ -886,6 +904,10 @@ void main() {\r
     \r
     vec3 color = vec3(0.0);\r
     if (hit) {\r
+        // Recalculate position and normal\r
+        vec3 p = ro + t * rd;\r
+        vec3 normal = calcNormal(p);\r
+\r
         // Simple lighting based on steps (Ambient Occlusion approximation)\r
         float glow = 1.0 - (float(steps) / 100.0);\r
         color = vec3(glow * 0.8, glow * 0.9, glow);\r
