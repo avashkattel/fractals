@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burning Ship Explorer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <button id="toggle-controls-btn" class="controls-toggle-btn">Show Controls</button>
+    <a id="about-link" href="https://en.wikipedia.org/wiki/Burning_Ship_fractal" target="_blank" rel="noopener noreferrer">About</a>
+    
+    <div id="controls-container" class="hidden">
+        
+        <div class="action-buttons">
+            <button id="reset-btn">Reset</button>
+            <button id="download-btn">Download HQ</button>
+            <button id="cycle-btn">Cycle Color</button>
+        </div>
+
+        <div class="control-group">
+            <label for="iterations">Iterations: <span id="iterations-value">200</span></label>
+            <input id="iterations" type="range" min="50" max="2000" value="200">
+        </div>
+
+        <div class="control-group">
+            <label for="color-power">Color Contrast: <span id="color-power-value">0.5</span></label>
+            <input id="color-power" type="range" min="0.1" max="2.0" value="0.5" step="0.05">
+        </div>
+        
+        <div class="control-group">
+            <label for="color-density">Color Density: <span id="color-density-value">25.0</span></label>
+            <input id="color-density" type="range" min="1.0" max="200.0" value="25.0" step="1.0">
+        </div>
+
+        <div class="control-group">
+             <div class="label-group">
+                <label>Gradient Colors</label>
+                <select id="palette-select"></select>
+             </div>
+             <div class="color-grid">
+                <input type="color" id="color1">
+                <input type="color" id="color2">
+                <input type="color" id="color3">
+                <input type="color" id="color4">
+                <input type="color" id="color5">
+             </div>
+        </div>
+                
+        <div class="stats-grid">
+            <div>
+                <span class="stat-label">Center X:</span>
+                <span id="center-x-val" class="stat-value">0.0</span>
+            </div>
+             <div>
+                <span class="stat-label">Center Y:</span>
+                <span id="center-y-val" class="stat-value">0.0</span>
+            </div>
+            <div class="span-2">
+                <span class="stat-label">Zoom Level:</span>
+                <span id="zoom-val" class="stat-value">1.0</span>
+            </div>
+        </div>
+    </div>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}</script>
+
+
+<script src="scripts/FractalExplorer.js"></script>
+
+<!--Burning Ship fractal-->
+<script>
+    const burningShipDefaults = {
+        center: [-1.77, -0.04],
+        zoom: 25.0,
+        maxIterations: 200,
+        colorPower: 0.5,
+        colorDensity: 25.0,
+        colors: ["#111827", "#331a80", "#e6e6ff", "#ffb300", "#111827"]
+    };
+
+    function getBurningShipFragmentShader() {
+        return `
+            precision highp float;
+            uniform vec2 u_resolution;
+            uniform vec2 u_center;
+            uniform float u_zoom;
+            uniform int u_max_iterations;
+            uniform float u_color_power;
+            uniform float u_color_density;
+            uniform float u_time;
+            uniform vec3 u_color1;
+            uniform vec3 u_color2;
+            uniform vec3 u_color3;
+            uniform vec3 u_color4;
+            uniform vec3 u_color5;
+
+            vec3 colorize(float t) {
+                t = pow(t, u_color_power);
+                if (t < 0.25) return mix(u_color1, u_color2, t / 0.25);
+                if (t < 0.5) return mix(u_color2, u_color3, (t - 0.25) / 0.25);
+                if (t < 0.75) return mix(u_color3, u_color4, (t - 0.5) / 0.25);
+                return mix(u_color4, u_color5, (t - 0.75) / 0.25);
+            }
+
+            void main() {
+                vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.x, u_resolution.y);
+                vec2 c = u_center + uv / u_zoom;
+                vec2 z = vec2(0.0);
+                int i = 0;
+
+                for (int j = 0; j < 2000; j++) {
+                    if (j >= u_max_iterations) break;
+                    
+                    // This is the core Burning Ship formula
+                    vec2 abs_z = abs(z);
+                    z = vec2(
+                        abs_z.x * abs_z.x - abs_z.y * abs_z.y,
+                        -2.0 * abs_z.x * abs_z.y
+                    ) + c;
+
+                    if (dot(z, z) > 4.0) {
+                        break;
+                    }
+                    i = j;
+                }
+
+                if (i >= u_max_iterations - 1) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                } else {
+                    float n = float(i) + 1.0 - log2(log(length(z)));
+                    float smoothed_log = log(1.0 + n);
+                    float color_value = smoothed_log / (u_color_density * 0.1) + u_time;
+                    gl_FragColor = vec4(colorize(fract(color_value)), 1.0);
+                }
+            }
+        `;
+    }
+
+    const BurningShipConfig = {
+        defaults: burningShipDefaults,
+        getFragmentShader: getBurningShipFragmentShader,
+        setUniforms: null 
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeFractalExplorer(BurningShipConfig);
+    });
+</script>
+
+</body>
+</html>

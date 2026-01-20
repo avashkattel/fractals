@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apollonian Gasket Explorer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <button id="toggle-controls-btn" class="controls-toggle-btn">Show Controls</button>
+    <a id="about-link" href="https://en.wikipedia.org/wiki/Apollonian_gasket" target="_blank" rel="noopener noreferrer">About</a>
+    
+    <div id="controls-container" class="hidden">
+        
+        <div class="action-buttons">
+            <button id="reset-btn">Reset</button>
+            <button id="download-btn">Download HQ</button>
+            <button id="cycle-btn">Cycle Color</button>
+        </div>
+
+        <div class="control-group">
+            <label for="recursion-depth">Recursion Depth: <span id="recursion-depth-value">6</span></label>
+            <input id="recursion-depth" type="range" min="1" max="15" value="6" step="1">
+        </div>
+
+        <div class="control-group">
+            <label for="curvature">Curvature: <span id="curvature-value">1.0</span></label>
+            <input id="curvature" type="range" min="0.5" max="2.5" value="1.0" step="0.01">
+        </div>
+        
+        <div class="control-group">
+            <label for="color-density">Color Density: <span id="color-density-value">5.0</span></label>
+            <input id="color-density" type="range" min="1.0" max="50.0" value="5.0" step="0.5">
+        </div>
+
+        <div class="control-group">
+             <div class="label-group">
+                <label>Gradient Colors</label>
+                <select id="palette-select"></select>
+             </div>
+             <div class="color-grid">
+                <input type="color" id="color1">
+                <input type="color" id="color2">
+                <input type="color" id="color3">
+                <input type="color" id="color4">
+                <input type="color" id="color5">
+             </div>
+        </div>
+                
+        <div class="stats-grid">
+            <div>
+                <span class="stat-label">Center X:</span>
+                <span id="center-x-val" class="stat-value">0.0</span>
+            </div>
+             <div>
+                <span class="stat-label">Center Y:</span>
+                <span id="center-y-val" class="stat-value">0.0</span>
+            </div>
+            <div class="span-2">
+                <span class="stat-label">Zoom Level:</span>
+                <span id="zoom-val" class="stat-value">1.0</span>
+            </div>
+        </div>
+    </div>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}</script>
+
+<!-- The reusable fractal explorer library -->
+<script src="scripts/FractalExplorer.js"></script>
+
+<!-- The specific code for the Apollonian Gasket fractal -->
+<script>
+    const apollonianGasketDefaults = {
+        center: [0.0, 0.0],
+        zoom: 0.3,
+        // These are not used by the shader but are here for the library's UI code
+        maxIterations: 6, 
+        colorPower: 1.0, 
+        colorDensity: 5.0,
+        colors: ["#111827", "#0077b6", "#90e0ef", "#ff9e00", "#111827"]
+    };
+
+    // This global variable will be updated by a new mouse listener
+    let mousePos = { x: 0.5, y: 0.5 };
+
+    function getApollonianGasketFragmentShader() {
+        return `
+            precision highp float;
+            uniform vec2 u_resolution;
+            uniform vec2 u_center;
+            uniform float u_zoom;
+            uniform float u_time;
+            
+            // Custom uniforms for this fractal
+            uniform int u_recursion_depth;
+            uniform float u_curvature;
+
+            uniform vec3 u_color1;
+            uniform vec3 u_color2;
+            uniform vec3 u_color3;
+            uniform vec3 u_color4;
+            uniform vec3 u_color5;
+            uniform float u_color_density;
+            uniform float u_color_power;
+
+
+            vec3 colorize(float t) {
+                t = pow(t, u_color_power);
+                if (t < 0.25) return mix(u_color1, u_color2, t / 0.25);
+                if (t < 0.5) return mix(u_color2, u_color3, (t - 0.25) / 0.25);
+                if (t < 0.75) return mix(u_color3, u_color4, (t - 0.5) / 0.25);
+                return mix(u_color4, u_color5, (t - 0.75) / 0.25);
+            }
+
+            // This is the core geometric inversion function
+            void invert(inout vec2 p, vec2 center, float radius) {
+                vec2 d = p - center;
+                float r2 = dot(d, d);
+                p = center + d * radius / r2;
+            }
+
+            void main() {
+                vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / u_resolution.y;
+                p /= u_zoom;
+                p += u_center;
+
+                float scale = 1.0;
+
+                // The core recursive inversion algorithm
+                for (int i = 0; i < 20; i++) {
+                    if (i >= u_recursion_depth) break;
+
+                    p = abs(p);
+                    if (p.x < p.y) p.xy = p.yx;
+                    
+                    scale *= u_curvature;
+                    p = p * u_curvature - vec2(u_curvature - 1.0, 0.0);
+                    
+                    float r2 = dot(p, p);
+                    if (r2 > 1.0) {
+                        p /= r2;
+                        scale /= r2;
+                    }
+                }
+
+                // Coloring based on the final transformed coordinate
+                float len = length(p);
+                float color_val = 0.5 + 0.5 * atan(p.y, p.x) / 3.14159;
+                color_val = (color_val - u_time) * u_color_density;
+
+                gl_FragColor = vec4(colorize(fract(color_val)), 1.0);
+                gl_FragColor.rgb *= 1.0 - pow(len, 0.5); // Add some shading
+            }
+        `;
+    }
+
+    const ApollonianGasketConfig = {
+        defaults: apollonianGasketDefaults,
+        getFragmentShader: getApollonianGasketFragmentShader,
+        // This function passes our custom uniforms to the shader
+        setUniforms: (gl, program) => {
+            const recursionDepth = document.getElementById('recursion-depth').value;
+            const curvatureSlider = document.getElementById('curvature').value;
+            
+            // Use mouse position to influence curvature when animation is active
+            const cycleBtn = document.getElementById('cycle-btn');
+            let finalCurvature = parseFloat(curvatureSlider);
+            if (cycleBtn.textContent.includes("Stop")) {
+                 finalCurvature = 0.5 + mousePos.x * 2.0;
+            }
+
+            gl.uniform1i(gl.getUniformLocation(program, 'u_recursion_depth'), parseInt(recursionDepth));
+            gl.uniform1f(gl.getUniformLocation(program, 'u_curvature'), finalCurvature);
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeFractalExplorer(ApollonianGasketConfig);
+
+        // Add a new mouse listener specific to this page
+        const canvas = document.getElementById('canvas');
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = (e.clientX - rect.left) / rect.width;
+            mousePos.y = 1.0 - (e.clientY - rect.top) / rect.height;
+        });
+
+        // Update the UI labels for the new sliders
+        document.getElementById('recursion-depth').addEventListener('input', e => {
+            document.getElementById('recursion-depth-value').textContent = e.target.value;
+        });
+        document.getElementById('curvature').addEventListener('input', e => {
+            document.getElementById('curvature-value').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+    });
+</script>
+
+</body>
+</html>
