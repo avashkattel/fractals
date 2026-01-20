@@ -927,11 +927,14 @@ void main() {\r
         lightColors[4] = getPaletteColor(0.9);\r
 \r
         // 5 Directions (Static for now, could rotate)\r
-        // 5 Directions calculated from Positions\r
+        // 5 Directions (Static for now, could rotate)\r
         vec3 lightDirs[5];\r
-        for(int k=0; k<5; k++) {\r
-            lightDirs[k] = normalize(u_lightPos[k] - p);\r
-        }\r
+        lightDirs[0] = normalize(vec3(1.0, 1.0, 1.0));\r
+        lightDirs[1] = normalize(vec3(-1.0, 1.0, 1.0));\r
+        lightDirs[2] = normalize(vec3(0.0, 1.0, -1.0));\r
+        lightDirs[3] = normalize(vec3(1.0, -1.0, 0.0)); // Underlight\r
+        lightDirs[4] = normalize(vec3(-1.0, 0.0, -1.0));\r
+\r
 \r
 \r
         vec3 accumDiffuse = vec3(0.0);\r
@@ -1048,9 +1051,12 @@ void main() {\r
              \r
              // Directions\r
              vec3 lightDirs[5];\r
-             for(int k=0; k<5; k++) {\r
-                lightDirs[k] = normalize(u_lightPos[k] - p);\r
-             }\r
+             lightDirs[0] = normalize(vec3(1,1,1));\r
+             lightDirs[1] = normalize(vec3(-1,1,1));\r
+             lightDirs[2] = normalize(vec3(0,1,-1));\r
+             lightDirs[3] = normalize(vec3(0,-1,0));\r
+             lightDirs[4] = normalize(vec3(-1,0,-1));\r
+\r
 \r
 \r
              for(int k=0; k<5; k++) {\r
